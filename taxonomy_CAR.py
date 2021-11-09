@@ -7,7 +7,7 @@ from enum import Enum
 
 from tqdm import tqdm
 
-from utils import CARInstance
+from utils_CAR import CARInstance
 
 
 class AttributeTypeTaxonomy(Enum):

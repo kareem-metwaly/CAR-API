@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 import wget
 from tqdm import tqdm
 
-from utils import attributes_path, cities
+from utils_CAR import attributes_path, cities
 
 
 def main():

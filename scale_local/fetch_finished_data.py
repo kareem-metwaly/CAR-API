@@ -6,7 +6,7 @@ from scaleapi import ScaleClient, Task, TaskStatus
 from tqdm import tqdm
 
 from scale_local.cityscapes_labeling.utils import LIVE_API_KEY, TEST_API_KEY
-from utils import CARInstance
+from utils_CAR import CARInstance
 
 
 def reform_task(task: Task) -> CARInstance:
