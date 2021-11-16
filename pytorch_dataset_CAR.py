@@ -136,9 +136,9 @@ class CARDataset(Dataset):
 
 if __name__ == "__main__":
     config = CARDatasetConfig(
-        path="/app/datasets/cityscapes/",
+        path=cs_path(),
         n_samples=None,
-        augmentations=AugmentationsConfig(resize=224, normalize=True),
+        augmentations=AugmentationsConfig(resize=224, normalize=False),
         keep_square=False,
         scale=28,
     )
@@ -147,15 +147,11 @@ if __name__ == "__main__":
     attributes_len = dataset.codec.n_attributes
     data_loader = torch.utils.data.DataLoader(
         dataset,
-        batch_size=4,
+        batch_size=8,
         num_workers=2,
         collate_fn=collate_fn,
         pin_memory=True,
     )
     for i, item in tqdm(enumerate(data_loader), total=len(data_loader)):
         obj = item[0]
-        if obj.class_name == "floor":
-            print(dataset.codec.encode(obj.attributes_label))
-            obj.show()
-            continue
-        pass
+        obj.show()

@@ -38,7 +38,7 @@ def main():
     zip.close()
     # Delete zip file
     os.remove(file_name)
-    print("\n" "Extraction Completed.\n" f"{', '.join(files)}\n" "Extracting ... \n")
+    print(f"Extraction Completed.\n {', '.join(files)}")
 
 
 if __name__ == "__main__":
