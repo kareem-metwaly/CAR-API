@@ -1,0 +1,12 @@
+typing~=3.10.0.0
+inquirer~=2.7.0
+pandas~=1.1.5
+pillow~=7.2.0
+cityscapesscripts~=2.2.0
+yarl~=1.4.2
+scaleapi~=2.5.0
+tqdm~=4.61.0
+numpy~=1.19.5
+wget~=3.2
+torch~=1.8.1
+torchvision~=0.9.1
