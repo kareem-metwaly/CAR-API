@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import zipfile
 from argparse import ArgumentParser
 
 import wget
@@ -24,10 +25,20 @@ def main():
     os.chdir(attributes_path())
     file_name = wget.download(args.url_path)
     print(
-        f"\n"
+        "\n"
         "The zip file is successfully installed to:\n"
-        f"{os.path.join(attributes_path(), file_name)}"
+        f"{os.path.join(attributes_path(), file_name)}\n"
+        "Extracting ... \n"
     )
+
+    # Extract files
+    zip = zipfile.ZipFile(file_name)
+    files = zip.namelist()
+    zip.extractall()
+    zip.close()
+    # Delete zip file
+    os.remove(file_name)
+    print("\n" "Extraction Completed.\n" f"{', '.join(files)}\n" "Extracting ... \n")
 
 
 if __name__ == "__main__":
