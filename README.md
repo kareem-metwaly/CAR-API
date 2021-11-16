@@ -8,8 +8,9 @@ This is the official api to download and fetch attributes annotations for Citysc
 
 - [Installation](#Installation)
 - [PyTorch Example](#PyTorch-Example)
-- [Code Structure](#Code-Structure)
 - [Citation](#Citation)
+
+[comment]: <> (- [Code Structure]&#40;#Code-Structure&#41;)
 
 
 
@@ -72,18 +73,25 @@ At this point, you have 4 `json` files; namely `all.json`, `train.json`, `val.js
 We provide a pytorch example to read the dataset and retrieve a sample of the dataset in [`pytorch_dataset_CAR.py`](pytorch_dataset_CAR.py).
 Please, refer to [`main`](pytorch_dataset_CAR.py#L137-L161).It contains a code that goes through the entire dataset.
 
-An output sample of the dataset class is of type `` and it contains the following:
-1. 
+An output sample of the dataset class is of custom type `ModelInputItem`. Please refer to [the definiton](dataclasses_CAR.py#L39-L90) of the class for more details about defined methods and variables. 
 
 
-## Code Structure
+[comment]: <> (## Code Structure)
+
 
 
 
 ## Citation
 
-```text
-@misc{
+If you are planning to use this code or the dataset, please cite the work as follows.
 
+```text
+@misc{metwaly2022car,
+      title={CAR - Cityscapes Attributes Recognition A Multi-category Attributes Dataset for Autonomous Vehicles}, 
+	author = {Metwaly, Kareem and Kim, Aerin and Branson, Elliot and Monga, Vishal},
+      year={2021},
+      howpublished = {\url{https://github.com/kareem-metwaly/CAR-API}},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
 }
 ```
