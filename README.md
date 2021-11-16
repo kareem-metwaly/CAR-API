@@ -53,20 +53,23 @@ echo 'export CITYSCAPES_DATASET="/home/user/cityscapes/"' > ~/.bashrc
 
 Note2: we actually need the images only. We do not need the labels as it is stored with the attributes annotations as well.
 
-4. Run the following to download the json files of CAR
+4. Run the following to download the json files of CAR compressed as a single `zip` file
 
 ```shell
-python download_CAR.py 
+python download_CAR.py --url_path <URL_LINK>
 ```
 
-You can also select a specific set of cities to download. For example, `--cities "aachen,bremen"` will download attributes files of aachen and bremen cities only.
+To obtain the download link, please email me at `kmetwaly511 [at] gmail [dot] com`.
+
+[comment]: <> (You can also select a specific set of cities to download. For example, `--cities "aachen,bremen"` will download attributes files of aachen and bremen cities only.)
 
 
 ## PyTorch Example
 
-We provide a simple pytorch example to read the dataset and retrieve a sample of the dataset in [`pytorch_CAR.py`](pytorch_CAR.py).
+We provide a pytorch example to read the dataset and retrieve a sample of the dataset in [`pytorch_dataset_CAR.py`](pytorch_dataset_CAR.py).
+Please, refer to [`main`](pytorch_dataset_CAR.py#L148-L172).It contains a code that goes through the entire dataset.
 
-A sample contains the following:
+An output sample contains the following:
 1. 
 
 

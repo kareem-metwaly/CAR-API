@@ -1,13 +1,8 @@
 import copy
 import math
-import random
 import typing as t
 from dataclasses import dataclass, field
 from enum import Enum
-
-from tqdm import tqdm
-
-from utils_CAR import CARInstance
 
 
 class AttributeTypeTaxonomy(Enum):
@@ -19,6 +14,10 @@ class AttributeTypeTaxonomy(Enum):
 @dataclass
 class ChoicesTaxonomy:
     values: t.List[str]
+
+    def __iter__(self):
+        for v in self.values:
+            yield v
 
 
 @dataclass
@@ -33,6 +32,14 @@ class NumericalTaxonomy:
             "max": self.max,
             "step": self.step,
         }
+
+    def __iter__(self):
+        for i in range(self.n_steps):
+            yield str(self.min + i * self.step)
+
+    @property
+    def n_steps(self) -> int:
+        return int((self.max - self.min) / self.step) + 1
 
 
 @dataclass
@@ -49,6 +56,10 @@ class ConditionTaxonomy:
                 "choices": self.choices.values,
             },
         }
+
+    def __iter__(self):
+        for v in self.values:
+            yield v
 
 
 @dataclass
@@ -125,7 +136,7 @@ class AttributeTaxonomy:
     @property
     def n_values(self) -> int:
         return (
-            math.ceil((self.value.max - self.value.min) / self.value.step)
+            self.value.n_steps
             if self.type is AttributeTypeTaxonomy.number
             else len(self.value.values)
         )
@@ -158,13 +169,15 @@ class AttributesList:
             assert not self.has(item)
             self._items.update({item.name: item})
 
-    def has(self, item):
-        return item.name in self._items.keys()
+    def has(self, attribute: t.Union[AttributeTaxonomy, str]) -> bool:
+        if isinstance(attribute, AttributeTaxonomy):
+            attribute = attribute.name
+        return attribute in self._items.keys()
 
     def __repr__(self):
         return f"AttributesList[{', '.join(self._items.keys())}]"
 
-    def append(self, item: AttributeTaxonomy):
+    def append(self, item: AttributeTaxonomy) -> t.NoReturn:
         assert not self.has(item)
         self._items.update({item.name: item})
 
@@ -184,10 +197,12 @@ class AttributesList:
     @property
     def n_combinations(self) -> int:
         """Calculates the number of possible combinations of the attributes"""
-        n = 1
-        for attribute in self:
-            n *= attribute.n_values
-        return n
+        return math.prod(attribute.n_values for attribute in self)
+
+    @property
+    def vector_length(self) -> int:
+        """Calculates the length of a vector that can be used to represent the attributes"""
+        return sum(attribute.n_values for attribute in self)
 
 
 @dataclass
@@ -668,6 +683,7 @@ class CompleteTaxonomy:
                                         "Rail Track",
                                         "Trash (or anything that holds trash)",
                                         "Fence or Barrier",
+                                        "Guard Rail",
                                         "Other",
                                     ]
                                 ),
@@ -727,7 +743,9 @@ class CompleteTaxonomy:
             if "attribute" in kwargs:
                 attribute = kwargs["attribute"]
                 attrs = [attr for attr in output.attributes if attr.name == attribute]
-                assert len(attrs) == 1, attrs
+                assert (
+                    len(attrs) == 1
+                ), f"{output.attributes} doesn't have {attribute} of {category}"
                 is_thing = output.meta["Is Thing"]
                 output = attrs[0]
                 output.meta.update({"Is Thing": is_thing, "category": category})
@@ -766,7 +784,7 @@ class CsTranslator:
         "building": "Construction",
         "wall": "Construction",
         "fence": "Construction",
-        "guard rail": "Movable Object",
+        "guard rail": "Static Object",
         "bridge": "Construction",
         "tunnel": "Construction",
         "pole": "Static Object",
@@ -792,7 +810,10 @@ class CsTranslator:
             ours.fetch(category=v)
 
     def Cs2Ours(self, name: str):
-        return self._cs2ours[name]
+        try:
+            return self._cs2ours[name]
+        except KeyError:
+            return "unknown"
 
     def Ours2Cs(self, name: str):
         # TODO: implement this one as well, it may requires changing the structure as the mapping is many to one not one to one so far
@@ -801,76 +822,3 @@ class CsTranslator:
 
 TAXONOMY = CompleteTaxonomy.load()
 CSMap = CsTranslator(sanity_check=True).Cs2Ours
-
-
-class TaxonomyCoDec:
-    categories_map: t.List[str]
-    attributes_length: t.Mapping[str, int]
-
-    def __init__(self):
-        self.categories_map = [category.name for category in TAXONOMY]
-        self.attributes_lengths = {
-            category.name: category.attributes.n_combinations for category in TAXONOMY
-        }
-
-    def category_length(self, category: t.Union[str, int]) -> int:
-        if isinstance(category, int):
-            category = self.decode(category, attributes_index=None)
-        return self.attributes_lengths[category]
-
-    def encode(
-        self, instance: t.Union[CARInstance, t.Tuple[str, t.Mapping[str, str]]]
-    ) -> t.Tuple[int, int]:
-        if isinstance(instance, CARInstance):
-            category_name = instance.category
-            attributes = {attr_name: attr_val for attr_name, attr_val in instance.attributes}
-        else:
-            category_name = instance[0]
-            attributes = instance[1]
-        category_idx = self.categories_map.index(category_name)
-        attributes_index = 0
-        attributes_level = 1
-        for attribute_name, attribute_value in attributes.items():
-            attribute_taxonomy = TAXONOMY.fetch(category=category_name, attribute=attribute_name)
-            attribute_idx = attribute_taxonomy.value_to_index(attribute_value)
-            attributes_index += attributes_level * attribute_idx
-            attributes_level *= attribute_taxonomy.n_values
-        return category_idx, attributes_index
-
-    def decode(
-        self, category_idx: int, attributes_index: t.Optional[int]
-    ) -> t.Tuple[str, t.Optional[t.Dict[str, str]]]:
-        category = self.categories_map[category_idx]
-        mapping = {}
-        if attributes_index is not None:
-            attributes = TAXONOMY.fetch(category=category).attributes
-            attributes_level = attributes.n_combinations
-            for attribute in reversed(attributes):
-                attributes_level = attributes_level / attribute.n_values
-                assert attributes_level == int(attributes_level)
-                attribute_idx = int(attributes_index / attributes_level)
-                attributes_index -= attribute_idx * attributes_level
-                mapping.update({attribute.name: attribute.index_to_value(attribute_idx)})
-            assert attributes_level == 1
-        return (
-            category,
-            mapping if mapping is not None else None,
-        )
-
-
-if __name__ == "__main__":
-    codec = TaxonomyCoDec()
-    for trial_number in tqdm(range(10000)):
-        cat_idx = random.randrange(len(TAXONOMY))
-        cat = TAXONOMY[cat_idx]
-        attributes = {}
-        for attr in cat.attributes:
-            idx = random.randrange(attr.n_values)
-            attributes.update({attr.name: attr.index_to_value(idx)})
-
-        coded = codec.encode(instance=(cat.name, attributes))
-        decoded = codec.decode(category_idx=coded[0], attributes_index=coded[1])
-        if decoded[0] != cat.name:
-            raise ValueError
-        if decoded[1] != attributes:
-            raise ValueError

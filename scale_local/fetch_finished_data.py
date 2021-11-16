@@ -26,10 +26,16 @@ def reform_task(task: Task) -> CARInstance:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--project", default="cityscapes_attributes")
-    parser.add_argument("--dryrun", action="store_true")
-    parser.add_argument("--batch", type=str, default="", help='the batch to be fetched, set to ""')
+    parser.add_argument(
+        "--batch", type=str, default="", help='the batch to be fetched, set to "" for all'
+    )
+    parser.add_argument(
+        "--reformat",
+        type=bool,
+        action="store_true",
+        help="whether to reformat to work with CARInstance or not",
+    )
     parser.add_argument("--path", type=str, default="/home/krm/datasets/car_api/")
-    parser.add_argument("--max_workers", type=int, default=8)
     args = parser.parse_args()
 
     os.makedirs(args.path, exist_ok=True)
@@ -65,13 +71,16 @@ def main():
     # Filter tasks that are not completed.
     tasks = [task for task in tasks if task.status == TaskStatus.Completed.value]
 
-    frames = []
-    for task in tqdm(tasks):
-        task = reform_task(task)
-        frames.append(task.dict)
-
-    with open(file_name, overwrite) as f:
-        json.dump(frames, f)
+    if args.reformat:
+        frames = []
+        for task in tqdm(tasks):
+            task = reform_task(task)
+            frames.append(task.as_dict)
+        with open(file_name, overwrite) as f:
+            json.dump(frames, f)
+    else:
+        with open(file_name, overwrite) as f:
+            json.dump([t._json for t in tasks], f)
 
 
 if __name__ == "__main__":
