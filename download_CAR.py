@@ -22,7 +22,12 @@ def main():
     #     file_url = args.url_path + "/" + city + ".json"
     #     wget.download(file_url)
     os.chdir(attributes_path())
-    wget.download(args.url_path)
+    file_name = wget.download(args.url_path)
+    print(
+        f"\n"
+        "The zip file is successfully installed to:\n"
+        f"{os.path.join(attributes_path(), file_name)}"
+    )
 
 
 if __name__ == "__main__":
