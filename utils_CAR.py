@@ -18,7 +18,7 @@ from tqdm import tqdm
 from taxonomy_CAR import TAXONOMY, CSMap
 
 EncodedTuple = t.NamedTuple(
-    "EncodedTuple", Category=int, Attributes=t.Optional[t.Union[int, t.List[int]]]
+    "EncodedTuple", Category=int, Attributes=t.Optional[t.Union[int, t.Collection[int]]]
 )
 
 cities = [
@@ -570,7 +570,7 @@ class CARInstance:
         output = np.zeros([6, scale, scale])
         for instance in self.instances_same_image:
             left, upper, width, height = (
-                scale * value for value in instance.polygon_annotations.bbox
+                scale * value for value in instance.polygon_annotations.bbox.left_upper_width_height
             )
             width = min(width, scale)
             height = min(height, scale)
@@ -603,7 +603,7 @@ class CARInstance:
             output[4, iy, ix] = height  # relative height
             output[5, iy, ix] = TaxonomyCoDec().encode(instance=(instance.category, None))[
                 0
-            ]  # Category Class ID
+            ]  # Category ID
         assert np.all(np.bitwise_or(output[0] == 0, output[0] == 1)), output[0]
         assert np.all(np.bitwise_and(0 <= output[1], output[1] <= 1)), output[1]
         assert np.all(np.bitwise_and(0 <= output[2], output[2] <= 1)), output[2]
@@ -786,7 +786,7 @@ class TaxonomyCoDec:
 
     def category_length(self, category: t.Union[str, int]) -> int:
         if isinstance(category, int):
-            category = self.decode(category, Attributes=None)
+            category = self.decode(category, attributes=None)
         return self.attributes_vector_lengths[category]
 
     def encode(
@@ -830,33 +830,33 @@ class TaxonomyCoDec:
         return EncodedTuple(Category=category_idx, Attributes=attributes_index)
 
     def decode(
-        self, Category: type(EncodedTuple.Category), Attributes: type(EncodedTuple.Attributes)
+        self, category: type(EncodedTuple.Category), attributes: type(EncodedTuple.Attributes)
     ) -> t.Tuple[str, t.Optional[t.Dict[str, str]]]:
-        category = self.categories_map[Category]
+        category = self.categories_map[category]
         mapping = {}
-        if Attributes is not None:
-            if isinstance(Attributes, int):
-                attributes = TAXONOMY.fetch(category=category).attributes
-                attributes_level = attributes.n_combinations
-                for attribute in reversed(attributes):
+        if attributes is not None:
+            if isinstance(attributes, int):
+                attributes_tax = TAXONOMY.fetch(category=category).attributes
+                attributes_level = attributes_tax.n_combinations
+                for attribute in reversed(attributes_tax):
                     attributes_level = attributes_level / attribute.n_values
                     assert attributes_level == int(attributes_level)
-                    attribute_idx = int(Attributes / attributes_level)
-                    Attributes -= attribute_idx * attributes_level
+                    attribute_idx = int(attributes / attributes_level)
+                    attributes -= attribute_idx * attributes_level
                     mapping.update({attribute.name: attribute.index_to_value(attribute_idx)})
                 assert attributes_level == 1
-            elif isinstance(Attributes, t.List):
-                attributes = TAXONOMY.fetch(category=category).attributes
-                attributes_level = attributes.vector_length
-                for attribute in reversed(attributes):
+            elif isinstance(attributes, t.Collection):
+                attributes_tax = TAXONOMY.fetch(category=category).attributes
+                attributes_level = attributes_tax.vector_length
+                for attribute in reversed(attributes_tax):
                     attributes_level -= attribute.n_values
                     attribute_idx = [
-                        i for i, v in enumerate(Attributes[attributes_level:]) if v == 1
+                        i for i, v in enumerate(attributes[attributes_level:]) if v == 1
                     ]
-                    assert len(attribute_idx) == 1, Attributes[attributes_level:]
+                    assert len(attribute_idx) == 1, attributes[attributes_level:]
                     mapping.update({attribute.name: attribute.index_to_value(attribute_idx[0])})
-                    Attributes = Attributes[:attributes_level]
-                assert attributes_level == 0 and len(Attributes) == 0
+                    attributes = attributes[:attributes_level]
+                assert attributes_level == 0 and len(attributes) == 0
             else:
                 raise NotImplementedError
         return (
@@ -870,14 +870,14 @@ if __name__ == "__main__":
     for trial_number in tqdm(range(10000)):
         cat_idx = random.randrange(len(TAXONOMY))
         cat = TAXONOMY[cat_idx]
-        attributes = {}
+        attrs = {}
         for attr in cat.attributes:
-            idx = random.randrange(attr.n_values)
-            attributes.update({attr.name: attr.index_to_value(idx)})
+            idy = random.randrange(attr.n_values)
+            attrs.update({attr.name: attr.index_to_value(idy)})
 
-        coded = codec.encode(instance=(cat.name, attributes), return_vector=True)
-        decoded = codec.decode(category_idx=coded[0], attributes_index=coded[1])
+        encoded = codec.encode(instance=(cat.name, attrs), return_vector=True)
+        decoded = codec.decode(category=encoded[0], attributes=encoded[1])
         if decoded[0] != cat.name:
             raise ValueError
-        if decoded[1] != attributes:
+        if decoded[1] != attrs:
             raise ValueError

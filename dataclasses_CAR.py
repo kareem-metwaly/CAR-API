@@ -41,8 +41,8 @@ class ModelInputItem:
     mask: Tensor
     cropped_image: Tensor
     cropped_mask: Tensor
-    class_id: Tensor
-    class_name: str
+    category_id: Tensor
+    category_name: str
     attributes_label: Tensor
     id: Tensor
     instance_id: Tensor
@@ -74,10 +74,10 @@ class ModelInputItem:
         return ModelInputItem(
             image=self.image.to(device),
             mask=self.mask.to(device),
-            class_name=self.class_name,
+            category_name=self.category_name,
             cropped_image=self.cropped_image.to(device),
             cropped_mask=self.cropped_mask.to(device),
-            class_id=self.class_id.to(device),
+            category_id=self.category_id.to(device),
             attributes_label=self.attributes_label.to(device),
             id=self.id.to(device),
             instance_id=self.instance_id.to(device),
@@ -96,8 +96,8 @@ class ModelInputItems:
     masks: Tensor
     cropped_images: Tensor
     cropped_masks: Tensor
-    class_ids: Tensor
-    class_names: t.List[str]
+    category_ids: Tensor
+    category_names: t.List[str]
     attributes_labels: Tensor
     ids: Tensor
     instance_ids: Tensor
@@ -132,15 +132,15 @@ class ModelInputItems:
         if self.instances_tensor is not None:
             assert self.instances_tensor.shape[1] == 6, self.instances_tensor.shape
             assert len(self.instances_tensor.shape) == 4, self.instances_tensor.shape
-        self.class_ids = self.class_ids.to(dtype=torch.int64)
+        self.category_ids = self.category_ids.to(dtype=torch.int64)
         assertion_list = [
             len(self.attributes_labels),
-            len(self.class_names),
+            len(self.category_names),
             len(self.images),
             len(self.masks),
             self.cropped_masks.shape[0],
             self.cropped_images.shape[0],
-            self.class_ids.shape[0],
+            self.category_ids.shape[0],
             self.attributes_labels.shape[0],
             self.ids.shape[0],
             self.instance_ids.shape[0],
@@ -158,8 +158,8 @@ class ModelInputItems:
             masks=torch.stack([item.mask for item in model_input_items], dim=0),
             cropped_images=torch.stack([item.cropped_image for item in model_input_items], dim=0),
             cropped_masks=torch.stack([item.cropped_mask for item in model_input_items], dim=0),
-            class_ids=torch.stack([item.class_id for item in model_input_items], dim=0),
-            class_names=[item.class_name for item in model_input_items],
+            category_ids=torch.stack([item.category_id for item in model_input_items], dim=0),
+            category_names=[item.category_name for item in model_input_items],
             attributes_labels=torch.stack(
                 [item.attributes_label for item in model_input_items], dim=0
             ),
@@ -181,8 +181,8 @@ class ModelInputItems:
             mask=self.masks[idx],
             cropped_image=self.cropped_images[idx],
             cropped_mask=self.cropped_masks[idx],
-            class_id=self.class_ids[idx],
-            class_name=self.class_names[idx],
+            category_id=self.category_ids[idx],
+            category_name=self.category_names[idx],
             attributes_label=self.attributes_labels[idx],
             id=self.ids[idx],
             instance_id=self.instance_ids[idx],
@@ -199,10 +199,10 @@ class ModelInputItems:
         return ModelInputItems(
             images=self.images.to(device),
             masks=self.masks.to(device),
-            class_names=self.class_names,
+            category_names=self.category_names,
             cropped_images=self.cropped_images.to(device),
             cropped_masks=self.cropped_masks.to(device),
-            class_ids=self.class_ids.to(device),
+            category_ids=self.category_ids.to(device),
             attributes_labels=self.attributes_labels.to(device),
             ids=self.ids.to(device),
             instance_ids=self.instance_ids.to(device),
@@ -213,18 +213,18 @@ class ModelInputItems:
 
     @property
     def classes_set(self) -> t.Set:
-        return set(self.class_ids.cpu().tolist())
+        return set(self.category_ids.cpu().tolist())
 
     @property
     def from_single_class(self) -> bool:
         return len(self.classes_set) == 1
 
     @property
-    def single_class_id(self) -> int:
+    def single_category_id(self) -> int:
         assert self.from_single_class
         return self.classes_set.pop()
 
     @property
-    def single_class_name(self) -> str:
+    def single_category_name(self) -> str:
         assert self.from_single_class
-        return self.class_names[0]
+        return self.category_names[0]

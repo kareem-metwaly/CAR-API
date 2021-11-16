@@ -18,7 +18,7 @@ class CARDataset(Dataset):
     def __init__(
         self,
         configs: CARDatasetConfig,
-        mode: str,  # either 'train', 'test', 'val'
+        mode: t.Literal["train", "test", "val"],
     ):
         super(CARDataset, self).__init__()
         assert mode in [
@@ -65,9 +65,9 @@ class CARDataset(Dataset):
         for cat in TAXONOMY:
             if len(cat.attributes) == 0:  # doesn't have attributes
                 eliminated.append(cat.name)
-        eliminated = {"class_name": eliminated}
+        eliminated = {"category_name": eliminated}
         self.car_data = CARInstances(
-            sample for sample in self.car_data if sample.category not in eliminated["class_name"]
+            sample for sample in self.car_data if sample.category not in eliminated["category_name"]
         )
 
         if configs.n_samples:
@@ -97,8 +97,8 @@ class CARDataset(Dataset):
                     mask=mask,
                     cropped_image=cropped_image,
                     cropped_mask=cropped_mask,
-                    class_id=torch.tensor(cls_id),
-                    class_name=cls_name,
+                    category_id=torch.tensor(cls_id),
+                    category_name=cls_name,
                     attributes_label=torch.Tensor(attr_vector),
                     id=torch.tensor(idx),
                     instance_id=instance_id,
@@ -154,4 +154,5 @@ if __name__ == "__main__":
     )
     for i, item in tqdm(enumerate(data_loader), total=len(data_loader)):
         obj = item[0]
+        print(dataset.codec.decode(obj.category_id, obj.attributes_label))
         obj.show()
