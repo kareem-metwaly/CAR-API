@@ -20,13 +20,14 @@ You can do so by checking [this repo](https://github.com/mcordts/cityscapesScrip
 
 I'm showing here a simple working example to download the data but for further issues please refer to the source repo. Or download from [the official website](https://www.cityscapes-dataset.com/)
 
-1. Install Cityscapes scripts.
+1. Install Cityscapes scripts and other required packages.
 
 ```shell
-pip install cityscapesScripts
+pip install -r requirements.txt
 ```
 
 2. Run the following script to download Cityscapes dataset.
+If you don't have an account, you will need to [create an account](https://www.cityscapes-dataset.com/register/).
 
 ```shell
 csDownload -d [DESTINATION_PATH] PACKAGE_NAME
