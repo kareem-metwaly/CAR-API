@@ -83,15 +83,24 @@ An output sample of the dataset class is of custom type `ModelInputItem`. Please
 
 ## Citation
 
-If you are planning to use this code or the dataset, please cite the work as follows.
+If you are planning to use this code or the dataset, please cite the work appropriately as follows.
 
 ```text
+@misc{car_api,
+  title = {{CAR}-{API}: an {API} for {CAR} Dataset},
+  key = {{CAR}-{API}},
+  howpublished = {\url{http://github.com/kareem-metwaly/car-api}},
+  note = {Accessed: 2021-11-16}
+}
+
 @misc{metwaly2022car,
-      title={CAR - Cityscapes Attributes Recognition A Multi-category Attributes Dataset for Autonomous Vehicles}, 
-	author = {Metwaly, Kareem and Kim, Aerin and Branson, Elliot and Monga, Vishal},
-      year={2021},
-      howpublished = {\url{https://github.com/kareem-metwaly/CAR-API}},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
+  title={{CAR} -- Cityscapes Attributes Recognition A Multi-category Attributes Dataset for Autonomous Vehicles}, 
+  author={Kareem Metwaly and Aerin Kim and Elliot Branson and Vishal Monga},
+  year={2021},
+  eprint={2111.08243},
+  archivePrefix={arXiv},
+  primaryClass={cs.CV},
+  howpublished = {\url{https://arxiv.org/abs/2111.08243}},
+  urldate = {2021-11-17},
 }
 ```
