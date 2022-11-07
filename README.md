@@ -61,7 +61,9 @@ Note2: we actually need the images only. We do not need the labels as it is stor
 $ python download_CAR.py --url_path "https://DOWNLOAD_LINK_HERE"
 ```
 
-To obtain the download link, please email me at `kmetwaly511 [at] gmail [dot] com`.
+You can download the annotations through [this link](https://drive.google.com/uc?export=download&id=1kf8JgAYKo_8ePckdsJfpM2g2x_OWRy9D)
+
+For comments and feedback, please email me at `kmetwaly511 [at] gmail [dot] com`.
 
 At this point, you have 4 `json` files; namely `all.json`, `train.json`, `val.json` and `test.json`
 
